@@ -1,59 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Dashboard from "./Dashboard";
 import SettingsDialog from "./SettingsDialog";
 import LinkEditDialog from "./LinkEditDialog";
 import ContextMenuSimulator from "./ContextMenuSimulator";
-
-interface Link {
-  id: string;
-  title: string;
-  url: string;
-  tags: string[];
-  createdAt: string;
-}
+import {
+  getLinks,
+  updateLink,
+  deleteLink,
+  addLink,
+  addTagToLinks,
+  deleteLinks,
+  exportLinks,
+  importLinks,
+  Link,
+} from "../lib/storage";
+import { useToast } from "./ui/use-toast";
 
 const Home = () => {
-  const [links, setLinks] = useState<Link[]>([
-    {
-      id: "1",
-      title: "Crypto Airdrop Opportunity",
-      url: "https://example.com/airdrop1",
-      tags: ["crypto", "high-priority"],
-      createdAt: "2023-05-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      title: "NFT Project Whitelist",
-      url: "https://example.com/nft-whitelist",
-      tags: ["nft"],
-      createdAt: "2023-05-16T14:20:00Z",
-    },
-    {
-      id: "3",
-      title: "DeFi Staking Rewards",
-      url: "https://example.com/defi-staking",
-      tags: ["defi", "finance"],
-      createdAt: "2023-05-17T09:15:00Z",
-    },
-    {
-      id: "4",
-      title: "Web3 Gaming Token",
-      url: "https://example.com/web3-gaming",
-      tags: ["gaming", "web3"],
-      createdAt: "2023-05-18T16:45:00Z",
-    },
-    {
-      id: "5",
-      title: "Metaverse Land Sale",
-      url: "https://example.com/metaverse-land",
-      tags: ["metaverse", "nft"],
-      createdAt: "2023-05-19T11:10:00Z",
-    },
-  ]);
-
+  const [links, setLinks] = useState<Link[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditLinkOpen, setIsEditLinkOpen] = useState(false);
   const [currentEditLink, setCurrentEditLink] = useState<Link | null>(null);
+  const [settings, setSettings] = useState({
+    maxTabsToOpen: 10,
+    defaultTag: "Airdrop",
+    autoBackup: false,
+    backupFrequency: 7,
+    notificationsEnabled: true,
+    confirmBeforeOpening: true,
+  });
+  const { toast } = useToast();
+
+  // Load links from storage on component mount
+  useEffect(() => {
+    const loadLinks = async () => {
+      try {
+        const storedLinks = await getLinks();
+        setLinks(storedLinks);
+      } catch (error) {
+        console.error("Failed to load links:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your saved links",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadLinks();
+
+    // Listen for storage changes (for when links are added via context menu)
+    const handleStorageChange = () => {
+      loadLinks();
+    };
+
+    if (typeof chrome !== "undefined" && chrome.storage) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+      return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+    }
+
+    return undefined;
+  }, []);
 
   // Get all unique tags from links
   const availableTags = Array.from(
@@ -64,9 +71,19 @@ const Home = () => {
     setIsSettingsOpen(true);
   };
 
-  const handleSaveSettings = (settings: any) => {
-    console.log("Saving settings:", settings);
+  const handleSaveSettings = async (newSettings: any) => {
+    setSettings(newSettings);
+    // Save settings to storage
+    if (typeof chrome !== "undefined" && chrome.storage) {
+      chrome.storage.local.set({ settings: newSettings });
+    } else {
+      localStorage.setItem("airdrop-settings", JSON.stringify(newSettings));
+    }
     setIsSettingsOpen(false);
+    toast({
+      title: "Settings Saved",
+      description: "Your preferences have been updated",
+    });
   };
 
   const handleEditLink = (link: Link) => {
@@ -74,28 +91,202 @@ const Home = () => {
     setIsEditLinkOpen(true);
   };
 
-  const handleSaveLink = (updatedLink: Link) => {
-    setLinks((prevLinks) =>
-      prevLinks.map((link) =>
-        link.id === updatedLink.id ? updatedLink : link,
-      ),
-    );
-    setIsEditLinkOpen(false);
+  const handleSaveLink = async (updatedLink: Link) => {
+    try {
+      await updateLink(updatedLink);
+      setLinks((prevLinks) =>
+        prevLinks.map((link) =>
+          link.id === updatedLink.id ? updatedLink : link,
+        ),
+      );
+      setIsEditLinkOpen(false);
+      toast({
+        title: "Link Updated",
+        description: "The link has been successfully updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update the link",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteLink = (id: string) => {
-    setLinks((prevLinks) => prevLinks.filter((link) => link.id !== id));
+  const handleDeleteLink = async (id: string) => {
+    try {
+      await deleteLink(id);
+      setLinks((prevLinks) => prevLinks.filter((link) => link.id !== id));
+      toast({
+        title: "Link Deleted",
+        description: "The link has been removed from your collection",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the link",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveContextMenuLink = (url: string, title: string) => {
-    const newLink: Link = {
-      id: Date.now().toString(),
-      title,
-      url,
-      tags: ["new"],
-      createdAt: new Date().toISOString(),
-    };
-    setLinks((prevLinks) => [...prevLinks, newLink]);
+  const handleDeleteSelected = async (ids: string[]) => {
+    try {
+      await deleteLinks(ids);
+      setLinks((prevLinks) =>
+        prevLinks.filter((link) => !ids.includes(link.id)),
+      );
+      toast({
+        title: "Links Deleted",
+        description: `${ids.length} links have been removed from your collection`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the selected links",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTagSelected = async (ids: string[], tag: string) => {
+    try {
+      await addTagToLinks(ids, tag);
+      // Refresh links
+      const updatedLinks = await getLinks();
+      setLinks(updatedLinks);
+      toast({
+        title: "Tags Added",
+        description: `Tag "${tag}" has been added to ${ids.length} links`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add tags to the selected links",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOpenSelected = (ids: string[]) => {
+    const linksToOpen = links.filter((link) => ids.includes(link.id));
+    const maxTabs = settings.maxTabsToOpen;
+
+    if (linksToOpen.length > maxTabs && settings.confirmBeforeOpening) {
+      if (
+        !window.confirm(
+          `You are about to open ${linksToOpen.length} tabs. Continue?`,
+        )
+      ) {
+        return;
+      }
+    }
+
+    // Open links in new tabs
+    linksToOpen.forEach((link) => {
+      window.open(link.url, "_blank");
+    });
+
+    toast({
+      title: "Links Opened",
+      description: `Opened ${linksToOpen.length} links in new tabs`,
+    });
+  };
+
+  const handleOpenAll = () => {
+    const maxTabs = settings.maxTabsToOpen;
+
+    if (links.length > maxTabs && settings.confirmBeforeOpening) {
+      if (
+        !window.confirm(`You are about to open ${links.length} tabs. Continue?`)
+      ) {
+        return;
+      }
+    }
+
+    // Open all links in new tabs
+    links.forEach((link) => {
+      window.open(link.url, "_blank");
+    });
+
+    toast({
+      title: "All Links Opened",
+      description: `Opened ${links.length} links in new tabs`,
+    });
+  };
+
+  const handleExport = async () => {
+    try {
+      const jsonData = await exportLinks();
+
+      // Create a download link
+      const blob = new Blob([jsonData], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `airdrop-links-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export Successful",
+        description: "Your links have been exported to a JSON file",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your links",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImport = async (importedLinks: any) => {
+    try {
+      let jsonData;
+      if (typeof importedLinks === "string") {
+        jsonData = importedLinks;
+      } else if (Array.isArray(importedLinks)) {
+        jsonData = JSON.stringify(importedLinks);
+      } else {
+        throw new Error("Invalid import format");
+      }
+
+      await importLinks(jsonData);
+      const refreshedLinks = await getLinks();
+      setLinks(refreshedLinks);
+
+      toast({
+        title: "Import Successful",
+        description: "Your links have been imported",
+      });
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description:
+          "There was an error importing your links. Please check the file format.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveContextMenuLink = async (url: string, title: string) => {
+    try {
+      const newLink = await addLink(url, title, [settings.defaultTag]);
+      setLinks((prevLinks) => [...prevLinks, newLink]);
+      toast({
+        title: "Link Saved",
+        description: `"${title}" has been added to your collection`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save the link",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -112,6 +303,12 @@ const Home = () => {
               onOpenSettings={handleOpenSettings}
               onEditLink={handleEditLink}
               onDeleteLink={handleDeleteLink}
+              onDeleteSelected={handleDeleteSelected}
+              onOpenSelected={handleOpenSelected}
+              onOpenAll={handleOpenAll}
+              onTagSelected={handleTagSelected}
+              onExport={handleExport}
+              onImport={handleImport}
             />
           </div>
 
@@ -127,7 +324,10 @@ const Home = () => {
                   onAddTag={(url, tag) => console.log("Add tag", url, tag)}
                   onCopyLink={(url) => {
                     navigator.clipboard.writeText(url);
-                    console.log("Copied to clipboard", url);
+                    toast({
+                      title: "Link Copied",
+                      description: "The link has been copied to your clipboard",
+                    });
                   }}
                 />
               </div>
@@ -159,6 +359,7 @@ const Home = () => {
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         onSave={handleSaveSettings}
+        defaultSettings={settings}
       />
 
       {currentEditLink && (

@@ -13,64 +13,39 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-
-interface Link {
-  id: string;
-  title: string;
-  url: string;
-  tags: string[];
-  createdAt: string;
-}
+import { Link } from "../lib/storage";
 
 interface DashboardProps {
   links?: Link[];
   onOpenSettings?: () => void;
+  onEditLink?: (link: Link) => void;
+  onDeleteLink?: (id: string) => void;
+  onDeleteSelected?: (ids: string[]) => void;
+  onOpenSelected?: (ids: string[]) => void;
+  onOpenAll?: () => void;
+  onTagSelected?: (ids: string[], tag: string) => void;
+  onExport?: () => void;
+  onImport?: (links: any) => void;
 }
 
 const Dashboard = ({
-  links = [
-    {
-      id: "1",
-      title: "Crypto Airdrop Opportunity",
-      url: "https://example.com/airdrop1",
-      tags: ["crypto", "high-priority"],
-      createdAt: "2023-05-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      title: "NFT Project Whitelist",
-      url: "https://example.com/nft-whitelist",
-      tags: ["nft"],
-      createdAt: "2023-05-16T14:20:00Z",
-    },
-    {
-      id: "3",
-      title: "DeFi Staking Rewards",
-      url: "https://example.com/defi-staking",
-      tags: ["defi", "finance"],
-      createdAt: "2023-05-17T09:15:00Z",
-    },
-    {
-      id: "4",
-      title: "Web3 Gaming Token",
-      url: "https://example.com/web3-gaming",
-      tags: ["gaming", "web3"],
-      createdAt: "2023-05-18T16:45:00Z",
-    },
-    {
-      id: "5",
-      title: "Metaverse Land Sale",
-      url: "https://example.com/metaverse-land",
-      tags: ["metaverse", "nft"],
-      createdAt: "2023-05-19T11:10:00Z",
-    },
-  ],
-  onOpenSettings = () => console.log("Open settings"),
+  links = [],
+  onOpenSettings = () => {},
+  onEditLink = () => {},
+  onDeleteLink = () => {},
+  onDeleteSelected = () => {},
+  onOpenSelected = () => {},
+  onOpenAll = () => {},
+  onTagSelected = () => {},
+  onExport = () => {},
+  onImport = () => {},
 }: DashboardProps) => {
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [tagFilters, setTagFilters] = useState<string[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
 
   // Get all unique tags from links
   const availableTags = Array.from(
@@ -124,95 +99,52 @@ const Dashboard = ({
     setTagFilters([]);
   };
 
-  const handleOpenSelected = () => {
-    // In a real implementation, this would open the selected links in new tabs
-    console.log("Opening selected links:", Array.from(selectedLinks));
-    filteredLinks
-      .filter((link) => selectedLinks.has(link.id))
-      .forEach((link) => {
-        // This would actually open tabs in a real extension
-        console.log(`Opening: ${link.title} - ${link.url}`);
-      });
+  const handleOpenSelectedLinks = () => {
+    onOpenSelected(Array.from(selectedLinks));
   };
 
-  const handleOpenAll = () => {
-    // In a real implementation, this would open all links in new tabs
-    console.log("Opening all links");
-    filteredLinks.forEach((link) => {
-      // This would actually open tabs in a real extension
-      console.log(`Opening: ${link.title} - ${link.url}`);
-    });
+  const handleOpenAllLinks = () => {
+    onOpenAll();
   };
 
-  const handleDeleteSelected = () => {
-    // In a real implementation, this would delete the selected links
-    console.log("Deleting selected links:", Array.from(selectedLinks));
-    // After deletion, clear the selection
+  const handleDeleteSelectedLinks = () => {
+    onDeleteSelected(Array.from(selectedLinks));
     setSelectedLinks(new Set());
   };
 
-  const handleEditLink = (link: Link) => {
-    // In a real implementation, this would open a dialog to edit the link
-    console.log("Editing link:", link);
-  };
-
-  const handleDeleteLink = (id: string) => {
-    // In a real implementation, this would delete the link
-    console.log("Deleting link:", id);
+  const handleTagSelectedLinks = (tag: string) => {
+    onTagSelected(Array.from(selectedLinks), tag);
+    setTagDialogOpen(false);
   };
 
   const handleTagLink = (id: string, tag: string) => {
-    // In a real implementation, this would add a tag to the link
-    console.log("Adding tag to link:", id, tag);
+    onTagSelected([id], tag);
   };
 
-  const handleImport = (importedLinks: any[]) => {
-    // In a real implementation, this would import the links
-    console.log("Importing links:", importedLinks);
+  const handleImportLinks = (importedLinks: any) => {
+    onImport(importedLinks);
   };
 
   return (
     <div className="flex flex-col w-full max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Airdrop Linker</h1>
-        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="sr-only">Settings</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
-              <DialogDescription>
-                Configure your Airdrop Linker preferences.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-gray-500">
-                Settings panel would go here. Configure maximum tabs to open,
-                default tag settings, and auto-backup options.
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button variant="ghost" size="icon" onClick={onOpenSettings}>
+          <Settings className="h-5 w-5" />
+          <span className="sr-only">Settings</span>
+        </Button>
       </div>
 
       <ActionBar
         selectedCount={selectedLinks.size}
         totalCount={filteredLinks.length}
-        onOpenSelected={handleOpenSelected}
-        onOpenAll={handleOpenAll}
-        onDeleteSelected={handleDeleteSelected}
-        onSettings={() => setIsSettingsOpen(true)}
-        onTagSelected={() => console.log("Tag selected")}
-        onExport={() => console.log("Export links")}
-        onImport={() => console.log("Import links")}
+        onOpenSelected={handleOpenSelectedLinks}
+        onOpenAll={handleOpenAllLinks}
+        onDeleteSelected={handleDeleteSelectedLinks}
+        onSettings={onOpenSettings}
+        onTagSelected={() => setTagDialogOpen(true)}
+        onExport={onExport}
+        onImport={onImport}
       />
 
       <div className="my-4">
@@ -229,13 +161,61 @@ const Dashboard = ({
           links={filteredLinks}
           onSelectLink={handleSelectLink}
           onSelectAll={handleSelectAll}
-          onEditLink={handleEditLink}
-          onDeleteLink={handleDeleteLink}
+          onEditLink={onEditLink}
+          onDeleteLink={onDeleteLink}
           onTagLink={handleTagLink}
         />
       </div>
 
-      <ImportExport links={links} onImport={handleImport} />
+      <ImportExport links={links} onImport={handleImportLinks} />
+
+      {/* Tag Selection Dialog */}
+      <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Tag to Selected Links</DialogTitle>
+            <DialogDescription>
+              Choose a tag to add to the {selectedLinks.size} selected links.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 gap-2">
+              {availableTags.map((tag) => (
+                <Button
+                  key={tag}
+                  variant={selectedTag === tag ? "default" : "outline"}
+                  onClick={() => setSelectedTag(tag)}
+                  className="text-sm"
+                >
+                  {tag}
+                </Button>
+              ))}
+              <input
+                type="text"
+                placeholder="New tag..."
+                value={
+                  selectedTag === "" || availableTags.includes(selectedTag)
+                    ? ""
+                    : selectedTag
+                }
+                onChange={(e) => setSelectedTag(e.target.value)}
+                className="px-3 py-2 border rounded-md col-span-4 mt-2"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setTagDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleTagSelectedLinks(selectedTag)}
+              disabled={!selectedTag}
+            >
+              Add Tag
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

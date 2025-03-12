@@ -15,7 +15,8 @@
     "storage",
     "contextMenus",
     "tabs",
-    "notifications"
+    "notifications",
+    "alarms"
   ],
   "icons": {
     "16": "icon16.png",
