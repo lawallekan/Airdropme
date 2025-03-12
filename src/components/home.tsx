@@ -54,9 +54,14 @@ const Home = () => {
       loadLinks();
     };
 
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.onChanged.addListener(handleStorageChange);
-      return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+    if (
+      typeof window !== "undefined" &&
+      window.chrome &&
+      window.chrome.storage
+    ) {
+      window.chrome.storage.onChanged.addListener(handleStorageChange);
+      return () =>
+        window.chrome.storage.onChanged.removeListener(handleStorageChange);
     }
 
     return undefined;
@@ -74,8 +79,12 @@ const Home = () => {
   const handleSaveSettings = async (newSettings: any) => {
     setSettings(newSettings);
     // Save settings to storage
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.set({ settings: newSettings });
+    if (
+      typeof window !== "undefined" &&
+      window.chrome &&
+      window.chrome.storage
+    ) {
+      window.chrome.storage.local.set({ settings: newSettings });
     } else {
       localStorage.setItem("airdrop-settings", JSON.stringify(newSettings));
     }
@@ -144,6 +153,25 @@ const Home = () => {
       toast({
         title: "Error",
         description: "Failed to delete the selected links",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddNewLink = async (linkData: { title: string; url: string }) => {
+    try {
+      const newLink = await addLink(linkData.url, linkData.title, [
+        settings.defaultTag,
+      ]);
+      setLinks((prevLinks) => [...prevLinks, newLink]);
+      toast({
+        title: "Link Added",
+        description: `"${linkData.title}" has been added to your collection`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add the link",
         variant: "destructive",
       });
     }
@@ -244,6 +272,17 @@ const Home = () => {
   };
 
   const handleImport = async (importedLinks: any) => {
+    // Check if this is a single link being added manually
+    if (
+      importedLinks &&
+      typeof importedLinks === "object" &&
+      !Array.isArray(importedLinks) &&
+      importedLinks.url
+    ) {
+      return handleAddNewLink(importedLinks);
+    }
+
+    // Otherwise, proceed with normal import
     try {
       let jsonData;
       if (typeof importedLinks === "string") {

@@ -25,7 +25,7 @@ interface ActionBarProps {
   onSettings?: () => void;
   onTagSelected?: () => void;
   onExport?: () => void;
-  onImport?: () => void;
+  onImport?: (data?: any) => void;
 }
 
 const ActionBar = ({

@@ -11,8 +11,12 @@ export interface Link {
 // Get all links from Chrome storage
 export const getLinks = (): Promise<Link[]> => {
   return new Promise((resolve) => {
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.get(["links"], (result) => {
+    if (
+      typeof window !== "undefined" &&
+      window.chrome &&
+      window.chrome.storage
+    ) {
+      window.chrome.storage.local.get(["links"], (result) => {
         resolve(result.links || []);
       });
     } else {
@@ -26,8 +30,12 @@ export const getLinks = (): Promise<Link[]> => {
 // Save links to Chrome storage
 export const saveLinks = (links: Link[]): Promise<void> => {
   return new Promise((resolve) => {
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      chrome.storage.local.set({ links }, () => {
+    if (
+      typeof window !== "undefined" &&
+      window.chrome &&
+      window.chrome.storage
+    ) {
+      window.chrome.storage.local.set({ links }, () => {
         resolve();
       });
     } else {

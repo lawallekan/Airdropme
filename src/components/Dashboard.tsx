@@ -3,7 +3,7 @@ import LinksList from "./LinksList";
 import ActionBar from "./ActionBar";
 import FilterBar from "./FilterBar";
 import ImportExport from "./ImportExport";
-import { Settings } from "lucide-react";
+import { Settings, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Link } from "../lib/storage";
+import AddLinkDialog, { AddLinkButton } from "./AddLinkDialog";
 
 interface DashboardProps {
   links?: Link[];
@@ -46,6 +47,7 @@ const Dashboard = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
+  const [addLinkDialogOpen, setAddLinkDialogOpen] = useState(false);
 
   // Get all unique tags from links
   const availableTags = Array.from(
@@ -125,14 +127,26 @@ const Dashboard = ({
     onImport(importedLinks);
   };
 
+  const handleAddLink = (linkData: { title: string; url: string }) => {
+    // Call the parent component's handler to add the link
+    onImport({
+      title: linkData.title,
+      url: linkData.url,
+    });
+    setAddLinkDialogOpen(false);
+  };
+
   return (
     <div className="flex flex-col w-full max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Airdrop Linker</h1>
-        <Button variant="ghost" size="icon" onClick={onOpenSettings}>
-          <Settings className="h-5 w-5" />
-          <span className="sr-only">Settings</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <AddLinkButton onClick={() => setAddLinkDialogOpen(true)} />
+          <Button variant="ghost" size="icon" onClick={onOpenSettings}>
+            <Settings className="h-5 w-5" />
+            <span className="sr-only">Settings</span>
+          </Button>
+        </div>
       </div>
 
       <ActionBar
@@ -216,6 +230,15 @@ const Dashboard = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Link Dialog */}
+      <AddLinkDialog
+        open={addLinkDialogOpen}
+        onOpenChange={setAddLinkDialogOpen}
+        onSave={handleAddLink}
+        onCancel={() => setAddLinkDialogOpen(false)}
+        defaultTag="Airdrop"
+      />
     </div>
   );
 };

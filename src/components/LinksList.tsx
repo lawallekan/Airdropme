@@ -135,14 +135,26 @@ const LinksList = ({
                   }
                 />
                 <div className="flex flex-col">
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-blue-600 hover:underline"
-                  >
-                    {link.title}
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(link.url)}&sz=32`}
+                      alt=""
+                      className="w-4 h-4"
+                      onError={(e) => {
+                        // Fallback if favicon fails to load
+                        (e.target as HTMLImageElement).src =
+                          'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+                      }}
+                    />
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-blue-600 hover:underline"
+                    >
+                      {link.title}
+                    </a>
+                  </div>
                   <span className="text-xs text-gray-500 truncate max-w-md">
                     {link.url}
                   </span>
