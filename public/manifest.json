@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Airdrop Linker",
+  "version": "1.0.0",
+  "description": "Collect, organize, and batch-open links for airdrop farming and web3 opportunities",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "tabs",
+    "notifications"
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
+EOF ; npm install && echo 'Tempo: Node Modules Installed' ; npm run dev -- --host 0.0.0.0 --port 3000
