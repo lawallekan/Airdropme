@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Dashboard from "./Dashboard";
 import SettingsDialog from "./SettingsDialog";
 import LinkEditDialog from "./LinkEditDialog";
-import ContextMenuSimulator from "./ContextMenuSimulator";
+
 import {
   getLinks,
   updateLink,
@@ -272,23 +272,6 @@ const Home = () => {
     }
   };
 
-  const handleSaveContextMenuLink = async (url: string, title: string) => {
-    try {
-      const newLink = await addLink(url, title, [settings.defaultTag]);
-      setLinks((prevLinks) => [...prevLinks, newLink]);
-      toast({
-        title: "Link Saved",
-        description: `"${title}" has been added to your collection`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save the link",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -296,8 +279,8 @@ const Home = () => {
           Airdrop Linker Extension
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-8">
+          <div>
             <Dashboard
               links={links}
               onOpenSettings={handleOpenSettings}
@@ -312,44 +295,22 @@ const Home = () => {
             />
           </div>
 
-          <div className="lg:col-span-1">
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">
-                  Context Menu Demo
-                </h2>
-                <ContextMenuSimulator
-                  onSaveLink={handleSaveContextMenuLink}
-                  onOpenLink={(url) => window.open(url, "_blank")}
-                  onAddTag={(url, tag) => console.log("Add tag", url, tag)}
-                  onCopyLink={(url) => {
-                    navigator.clipboard.writeText(url);
-                    toast({
-                      title: "Link Copied",
-                      description: "The link has been copied to your clipboard",
-                    });
-                  }}
-                />
-              </div>
-
-              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">
-                  About Airdrop Linker
-                </h2>
-                <p className="text-gray-600 mb-4">
-                  Airdrop Linker is a Chrome extension designed to help you
-                  collect, organize, and batch-open links for airdrop farming
-                  and other web3 opportunities.
-                </p>
-                <ul className="list-disc pl-5 text-gray-600 space-y-2">
-                  <li>Save links directly from the context menu</li>
-                  <li>Organize links with tags and categories</li>
-                  <li>Batch open multiple links with a single click</li>
-                  <li>Export and import your link collections</li>
-                  <li>Customize settings to match your workflow</li>
-                </ul>
-              </div>
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 max-w-4xl mx-auto">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">
+              About Airdrop Linker
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Airdrop Linker is a Chrome extension designed to help you collect,
+              organize, and batch-open links for airdrop farming and other web3
+              opportunities.
+            </p>
+            <ul className="list-disc pl-5 text-gray-600 space-y-2">
+              <li>Save links directly from the context menu</li>
+              <li>Organize links with tags and categories</li>
+              <li>Batch open multiple links with a single click</li>
+              <li>Export and import your link collections</li>
+              <li>Customize settings to match your workflow</li>
+            </ul>
           </div>
         </div>
       </div>
