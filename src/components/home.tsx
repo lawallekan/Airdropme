@@ -56,12 +56,11 @@ const Home = () => {
 
     if (
       typeof window !== "undefined" &&
-      window.chrome &&
-      window.chrome.storage
+      typeof chrome !== "undefined" &&
+      chrome.storage
     ) {
-      window.chrome.storage.onChanged.addListener(handleStorageChange);
-      return () =>
-        window.chrome.storage.onChanged.removeListener(handleStorageChange);
+      chrome.storage.onChanged.addListener(handleStorageChange);
+      return () => chrome.storage.onChanged.removeListener(handleStorageChange);
     }
 
     return undefined;
@@ -81,10 +80,10 @@ const Home = () => {
     // Save settings to storage
     if (
       typeof window !== "undefined" &&
-      window.chrome &&
-      window.chrome.storage
+      typeof chrome !== "undefined" &&
+      chrome.storage
     ) {
-      window.chrome.storage.local.set({ settings: newSettings });
+      chrome.storage.local.set({ settings: newSettings });
     } else {
       localStorage.setItem("airdrop-settings", JSON.stringify(newSettings));
     }

@@ -13,10 +13,10 @@ export const getLinks = (): Promise<Link[]> => {
   return new Promise((resolve) => {
     if (
       typeof window !== "undefined" &&
-      window.chrome &&
-      window.chrome.storage
+      typeof chrome !== "undefined" &&
+      chrome.storage
     ) {
-      window.chrome.storage.local.get(["links"], (result) => {
+      chrome.storage.local.get(["links"], (result) => {
         resolve(result.links || []);
       });
     } else {
@@ -32,10 +32,10 @@ export const saveLinks = (links: Link[]): Promise<void> => {
   return new Promise((resolve) => {
     if (
       typeof window !== "undefined" &&
-      window.chrome &&
-      window.chrome.storage
+      typeof chrome !== "undefined" &&
+      chrome.storage
     ) {
-      window.chrome.storage.local.set({ links }, () => {
+      chrome.storage.local.set({ links }, () => {
         resolve();
       });
     } else {
