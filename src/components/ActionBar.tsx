@@ -105,7 +105,6 @@ const ActionBar = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-
       <div className="flex items-center gap-2">
         <TooltipProvider>
           <Tooltip>
@@ -133,11 +132,6 @@ const ActionBar = ({
 
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={onSettings}>
-                <Settings className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
             <TooltipContent>Open settings</TooltipContent>
           </Tooltip>
         </TooltipProvider>

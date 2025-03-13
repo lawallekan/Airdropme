@@ -94,7 +94,7 @@ const ImportExport = ({
   };
 
   return (
-    <div className="flex items-center justify-between w-full p-3 bg-white border-t border-gray-200 rounded-b-md">
+    <div className="flex items-center justify-between w-full p-4 bg-card border-t rounded-b-md">
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"

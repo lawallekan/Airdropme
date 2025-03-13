@@ -1,4 +1,4 @@
-// Chrome storage utility functions
+// Web storage utility functions
 
 export interface Link {
   id: string;
@@ -8,41 +8,26 @@ export interface Link {
   createdAt: string;
 }
 
-// Get all links from Chrome storage
+// Get all links from local storage
 export const getLinks = (): Promise<Link[]> => {
   return new Promise((resolve) => {
-    if (
-      typeof window !== "undefined" &&
-      typeof chrome !== "undefined" &&
-      chrome.storage
-    ) {
-      chrome.storage.local.get(["links"], (result) => {
-        resolve(result.links || []);
-      });
-    } else {
-      // Fallback for development environment
-      const storedLinks = localStorage.getItem("airdrop-links");
-      resolve(storedLinks ? JSON.parse(storedLinks) : []);
-    }
+    const storedLinks = localStorage.getItem("airdrop-links");
+    resolve(storedLinks ? JSON.parse(storedLinks) : []);
   });
 };
 
-// Save links to Chrome storage
+// Save links to local storage
 export const saveLinks = (links: Link[]): Promise<void> => {
   return new Promise((resolve) => {
-    if (
-      typeof window !== "undefined" &&
-      typeof chrome !== "undefined" &&
-      chrome.storage
-    ) {
-      chrome.storage.local.set({ links }, () => {
-        resolve();
-      });
-    } else {
-      // Fallback for development environment
-      localStorage.setItem("airdrop-links", JSON.stringify(links));
-      resolve();
-    }
+    localStorage.setItem("airdrop-links", JSON.stringify(links));
+    // Dispatch a storage event to notify other tabs
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "airdrop-links",
+        newValue: JSON.stringify(links),
+      }),
+    );
+    resolve();
   });
 };
 

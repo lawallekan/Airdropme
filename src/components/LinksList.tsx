@@ -102,7 +102,7 @@ const LinksList = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-md shadow-sm border border-gray-200">
+    <div className="w-full bg-card rounded-md shadow-sm border">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">

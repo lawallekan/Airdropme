@@ -53,7 +53,7 @@ const FilterBar = ({
   };
 
   return (
-    <div className="w-full bg-white p-3 rounded-md shadow-sm border border-gray-200">
+    <div className="w-full bg-card p-4 rounded-md shadow-sm border">
       <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
         <form onSubmit={handleSearch} className="flex-1 relative">
           <Input

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import Dashboard from "./Dashboard";
 import SettingsDialog from "./SettingsDialog";
 import LinkEditDialog from "./LinkEditDialog";
+import Header from "./Header";
+import Footer from "./Footer";
+import { Sparkles } from "lucide-react";
 
 import {
   getLinks,
@@ -49,21 +52,15 @@ const Home = () => {
 
     loadLinks();
 
-    // Listen for storage changes (for when links are added via context menu)
-    const handleStorageChange = () => {
-      loadLinks();
+    // For web app, we'll use localStorage events
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "airdrop-links" || e.key === null) {
+        loadLinks();
+      }
     };
 
-    if (
-      typeof window !== "undefined" &&
-      typeof chrome !== "undefined" &&
-      chrome.storage
-    ) {
-      chrome.storage.onChanged.addListener(handleStorageChange);
-      return () => chrome.storage.onChanged.removeListener(handleStorageChange);
-    }
-
-    return undefined;
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Get all unique tags from links
@@ -78,15 +75,7 @@ const Home = () => {
   const handleSaveSettings = async (newSettings: any) => {
     setSettings(newSettings);
     // Save settings to storage
-    if (
-      typeof window !== "undefined" &&
-      typeof chrome !== "undefined" &&
-      chrome.storage
-    ) {
-      chrome.storage.local.set({ settings: newSettings });
-    } else {
-      localStorage.setItem("airdrop-settings", JSON.stringify(newSettings));
-    }
+    localStorage.setItem("airdrop-settings", JSON.stringify(newSettings));
     setIsSettingsOpen(false);
     toast({
       title: "Settings Saved",
@@ -311,47 +300,211 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-          Airdrop Linker Extension
-        </h1>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header onOpenSettings={handleOpenSettings} />
 
-        <div className="grid grid-cols-1 gap-8">
-          <div>
-            <Dashboard
-              links={links}
-              onOpenSettings={handleOpenSettings}
-              onEditLink={handleEditLink}
-              onDeleteLink={handleDeleteLink}
-              onDeleteSelected={handleDeleteSelected}
-              onOpenSelected={handleOpenSelected}
-              onOpenAll={handleOpenAll}
-              onTagSelected={handleTagSelected}
-              onExport={handleExport}
-              onImport={handleImport}
-            />
-          </div>
+      <main className="flex-1 container py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col gap-8">
+            <div className="text-center space-y-4 mb-8">
+              <h1 className="text-4xl font-bold tracking-tight lg:text-5xl bg-gradient-to-r from-primary to-purple-600 dark:from-blue-400 dark:to-purple-400 text-transparent bg-clip-text inline-block">
+                Airdrop Linker
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Collect, organize, and batch-open links for airdrop farming and
+                web3 opportunities.
+              </p>
+              <div className="flex justify-center gap-2 mt-4">
+                <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-600/30">
+                  <Sparkles className="mr-1 h-3 w-3" /> Crypto
+                </span>
+                <span className="inline-flex items-center rounded-md bg-purple-50 dark:bg-purple-900/30 px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10 dark:ring-purple-600/30">
+                  <Sparkles className="mr-1 h-3 w-3" /> NFTs
+                </span>
+                <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-700/10 dark:ring-green-600/30">
+                  <Sparkles className="mr-1 h-3 w-3" /> DeFi
+                </span>
+              </div>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 max-w-4xl mx-auto">
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">
-              About Airdrop Linker
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Airdrop Linker is a Chrome extension designed to help you collect,
-              organize, and batch-open links for airdrop farming and other web3
-              opportunities.
-            </p>
-            <ul className="list-disc pl-5 text-gray-600 space-y-2">
-              <li>Save links directly from the context menu</li>
-              <li>Organize links with tags and categories</li>
-              <li>Batch open multiple links with a single click</li>
-              <li>Export and import your link collections</li>
-              <li>Customize settings to match your workflow</li>
-            </ul>
+            <div>
+              <Dashboard
+                links={links}
+                onOpenSettings={handleOpenSettings}
+                onEditLink={handleEditLink}
+                onDeleteLink={handleDeleteLink}
+                onDeleteSelected={handleDeleteSelected}
+                onOpenSelected={handleOpenSelected}
+                onOpenAll={handleOpenAll}
+                onTagSelected={handleTagSelected}
+                onExport={handleExport}
+                onImport={handleImport}
+              />
+            </div>
+
+            <div className="bg-card p-8 rounded-lg shadow-sm border max-w-4xl mx-auto">
+              <h2 className="text-2xl font-semibold mb-4">
+                About Airdrop Linker
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Airdrop Linker is a powerful web application designed to help
+                you collect, organize, and batch-open links for airdrop farming
+                and other web3 opportunities.
+              </p>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Key Features</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Save links with custom titles and tags</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Organize links with tags and categories</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Batch open multiple links with a single click</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Export and import your link collections</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Benefits</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Save time with batch link opening</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Keep your airdrop opportunities organized</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Never miss an important airdrop again</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Customize settings to match your workflow</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
 
       {/* Dialogs */}
       <SettingsDialog

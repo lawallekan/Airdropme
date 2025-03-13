@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LinksList from "./LinksList";
 import ActionBar from "./ActionBar";
 import FilterBar from "./FilterBar";
 import ImportExport from "./ImportExport";
-import { Settings, Plus } from "lucide-react";
+import { Settings, Plus, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -15,6 +15,8 @@ import {
 } from "./ui/dialog";
 import { Link } from "../lib/storage";
 import AddLinkDialog, { AddLinkButton } from "./AddLinkDialog";
+import LoadingState from "./LoadingState";
+import StatsCard from "./StatsCard";
 
 interface DashboardProps {
   links?: Link[];
@@ -48,11 +50,20 @@ const Dashboard = ({
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
   const [addLinkDialogOpen, setAddLinkDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get all unique tags from links
   const availableTags = Array.from(
     new Set(links.flatMap((link) => link.tags)),
   ).sort();
+
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Filter links based on search query and tag filters
   const filteredLinks = links.filter((link) => {
@@ -136,10 +147,21 @@ const Dashboard = ({
     setAddLinkDialogOpen(false);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col w-full max-w-5xl mx-auto p-6 bg-card rounded-lg shadow-md border dark:border-gray-700 dark:shadow-gray-900/20">
+        <LoadingState />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md border border-gray-200">
+    <div className="flex flex-col w-full max-w-5xl mx-auto p-6 bg-card rounded-lg shadow-md border dark:border-gray-700 dark:shadow-gray-900/20">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Airdrop Linker</h1>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold">Your Links</h2>
+          <Sparkles className="h-4 w-4 text-yellow-500" />
+        </div>
         <div className="flex items-center gap-2">
           <AddLinkButton onClick={() => setAddLinkDialogOpen(true)} />
           <Button variant="ghost" size="icon" onClick={onOpenSettings}>
@@ -148,6 +170,8 @@ const Dashboard = ({
           </Button>
         </div>
       </div>
+
+      <StatsCard links={links} />
 
       <ActionBar
         selectedCount={selectedLinks.size}

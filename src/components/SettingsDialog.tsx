@@ -6,40 +6,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Slider } from "./ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Settings, Save } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Settings, Bell, Database, Maximize2, Tag } from "lucide-react";
 
 interface SettingsDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onSave?: (settings: SettingsData) => void;
-  defaultSettings?: SettingsData;
+  onSave?: (settings: SettingsType) => void;
+  defaultSettings?: SettingsType;
 }
 
-interface SettingsData {
+interface SettingsType {
   maxTabsToOpen: number;
   defaultTag: string;
   autoBackup: boolean;
-  backupFrequency: number; // days
+  backupFrequency: number;
   notificationsEnabled: boolean;
   confirmBeforeOpening: boolean;
 }
 
 const SettingsDialog = ({
-  open = true,
+  open = false,
   onOpenChange = () => {},
   onSave = () => {},
   defaultSettings = {
@@ -51,177 +44,227 @@ const SettingsDialog = ({
     confirmBeforeOpening: true,
   },
 }: SettingsDialogProps) => {
-  const [settings, setSettings] = useState<SettingsData>(defaultSettings);
+  const [settings, setSettings] = useState<SettingsType>(defaultSettings);
 
   const handleSave = () => {
     onSave(settings);
     onOpenChange(false);
   };
 
-  const handleChange = (key: keyof SettingsData, value: any) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const handleReset = () => {
+    setSettings({
+      maxTabsToOpen: 10,
+      defaultTag: "Airdrop",
+      autoBackup: false,
+      backupFrequency: 7,
+      notificationsEnabled: true,
+      confirmBeforeOpening: true,
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Settings className="h-5 w-5" />
-          <span className="sr-only">Settings</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Extension Settings</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            <span>Settings</span>
+          </DialogTitle>
           <DialogDescription>
-            Configure your preferences for the Airdrop Linker extension.
+            Configure your Airdrop Linker preferences
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="maxTabs" className="text-right">
-              Max Tabs
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="maxTabs"
-                type="number"
-                min="1"
-                max="50"
-                value={settings.maxTabsToOpen}
-                onChange={(e) =>
-                  handleChange("maxTabsToOpen", parseInt(e.target.value) || 1)
-                }
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Maximum number of tabs to open at once (1-50)
-              </p>
-            </div>
-          </div>
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="backup">Backup</TabsTrigger>
+          </TabsList>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="defaultTag" className="text-right">
-              Default Tag
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={settings.defaultTag}
-                onValueChange={(value) => handleChange("defaultTag", value)}
-              >
-                <SelectTrigger id="defaultTag">
-                  <SelectValue placeholder="Select a default tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Airdrop">Airdrop</SelectItem>
-                  <SelectItem value="NFT">NFT</SelectItem>
-                  <SelectItem value="DeFi">DeFi</SelectItem>
-                  <SelectItem value="GameFi">GameFi</SelectItem>
-                  <SelectItem value="Social">Social</SelectItem>
-                  <SelectItem value="Important">Important</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-1">
-                Default tag applied to new links
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="autoBackup" className="text-right">
-              Auto Backup
-            </Label>
-            <div className="col-span-3 flex items-center space-x-2">
-              <Switch
-                id="autoBackup"
-                checked={settings.autoBackup}
-                onCheckedChange={(checked) =>
-                  handleChange("autoBackup", checked)
-                }
-              />
-              <span className="text-sm">
-                {settings.autoBackup ? "Enabled" : "Disabled"}
-              </span>
-            </div>
-          </div>
-
-          {settings.autoBackup && (
+          <TabsContent value="general" className="space-y-4">
+            {/* Maximum tabs to open */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="backupFrequency" className="text-right">
-                Backup Every
-              </Label>
+              <div className="flex items-center gap-2 justify-end">
+                <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="maxTabs" className="text-right">
+                  Max tabs to open
+                </Label>
+              </div>
               <div className="col-span-3">
-                <div className="flex items-center space-x-2">
-                  <Slider
-                    id="backupFrequency"
-                    min={1}
-                    max={30}
-                    step={1}
-                    value={[settings.backupFrequency]}
-                    onValueChange={(value) =>
-                      handleChange("backupFrequency", value[0])
-                    }
-                    className="w-full"
-                  />
-                  <span className="w-12 text-center">
-                    {settings.backupFrequency}{" "}
-                    {settings.backupFrequency === 1 ? "day" : "days"}
-                  </span>
-                </div>
+                <Input
+                  id="maxTabs"
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={settings.maxTabsToOpen}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      maxTabsToOpen: parseInt(e.target.value) || 10,
+                    })
+                  }
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum number of tabs to open at once
+                </p>
               </div>
             </div>
-          )}
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="notifications" className="text-right">
-              Notifications
-            </Label>
-            <div className="col-span-3 flex items-center space-x-2">
-              <Switch
-                id="notifications"
-                checked={settings.notificationsEnabled}
-                onCheckedChange={(checked) =>
-                  handleChange("notificationsEnabled", checked)
-                }
-              />
-              <span className="text-sm">
-                {settings.notificationsEnabled ? "Enabled" : "Disabled"}
-              </span>
+            {/* Default tag */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center gap-2 justify-end">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="defaultTag" className="text-right">
+                  Default tag
+                </Label>
+              </div>
+              <div className="col-span-3">
+                <Input
+                  id="defaultTag"
+                  value={settings.defaultTag}
+                  onChange={(e) =>
+                    setSettings({ ...settings, defaultTag: e.target.value })
+                  }
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Default tag applied to new links
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="confirmOpening" className="text-right">
-              Confirm Opening
-            </Label>
-            <div className="col-span-3 flex items-center space-x-2">
-              <Switch
-                id="confirmOpening"
-                checked={settings.confirmBeforeOpening}
-                onCheckedChange={(checked) =>
-                  handleChange("confirmBeforeOpening", checked)
-                }
-              />
-              <span className="text-sm">
-                {settings.confirmBeforeOpening
-                  ? "Ask before opening multiple tabs"
-                  : "Open tabs without confirmation"}
-              </span>
+            {/* Confirm before opening */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="confirmOpening" className="text-right">
+                Confirm before opening
+              </Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  id="confirmOpening"
+                  checked={settings.confirmBeforeOpening}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, confirmBeforeOpening: checked })
+                  }
+                />
+                <Label htmlFor="confirmOpening" className="text-sm">
+                  {settings.confirmBeforeOpening ? "Enabled" : "Disabled"}
+                </Label>
+              </div>
             </div>
-          </div>
-        </div>
+          </TabsContent>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+          <TabsContent value="notifications" className="space-y-4">
+            {/* Notifications */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center gap-2 justify-end">
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="notifications" className="text-right">
+                  Notifications
+                </Label>
+              </div>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  id="notifications"
+                  checked={settings.notificationsEnabled}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, notificationsEnabled: checked })
+                  }
+                />
+                <Label htmlFor="notifications" className="text-sm">
+                  {settings.notificationsEnabled ? "Enabled" : "Disabled"}
+                </Label>
+              </div>
+            </div>
+
+            <div className="p-4 bg-muted rounded-md">
+              <p className="text-sm">
+                When notifications are enabled, you'll receive alerts for:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm list-disc list-inside">
+                <li>New links saved via context menu</li>
+                <li>Batch operations completion</li>
+                <li>Import/export success</li>
+                <li>Backup status</li>
+              </ul>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="backup" className="space-y-4">
+            {/* Auto backup */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center gap-2 justify-end">
+                <Database className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="autoBackup" className="text-right">
+                  Auto backup
+                </Label>
+              </div>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  id="autoBackup"
+                  checked={settings.autoBackup}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, autoBackup: checked })
+                  }
+                />
+                <Label htmlFor="autoBackup" className="text-sm">
+                  {settings.autoBackup ? "Enabled" : "Disabled"}
+                </Label>
+              </div>
+            </div>
+
+            {/* Backup frequency */}
+            {settings.autoBackup && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="backupFrequency" className="text-right">
+                  Backup frequency
+                </Label>
+                <div className="col-span-3">
+                  <div className="flex flex-col space-y-2">
+                    <Slider
+                      id="backupFrequency"
+                      min={1}
+                      max={30}
+                      step={1}
+                      value={[settings.backupFrequency]}
+                      onValueChange={(value) =>
+                        setSettings({ ...settings, backupFrequency: value[0] })
+                      }
+                    />
+                    <div className="flex justify-between">
+                      <span className="text-xs">1 day</span>
+                      <span className="text-xs font-medium">
+                        {settings.backupFrequency} days
+                      </span>
+                      <span className="text-xs">30 days</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 bg-muted rounded-md">
+              <p className="text-sm">
+                Backups are stored locally in your browser's storage. You can
+                also manually export your links collection at any time.
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
+        <DialogFooter className="flex justify-between mt-6">
+          <Button variant="outline" onClick={handleReset}>
+            Reset to Defaults
           </Button>
-          <Button onClick={handleSave} className="gap-2">
-            <Save className="h-4 w-4" />
-            Save Changes
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+            >
+              Save Changes
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
