@@ -1,19 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Settings, Github, Moon, Sun, Sparkles } from "lucide-react";
+import { Settings, Github, Moon, Sun, Sparkles, LogOut } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "./auth/AuthProvider";
 
 interface HeaderProps {
   onOpenSettings?: () => void;
 }
 
 const Header = ({ onOpenSettings = () => {} }: HeaderProps) => {
+  const { user, logout } = useAuth();
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <div className="relative">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -56,10 +58,19 @@ const Header = ({ onOpenSettings = () => {} }: HeaderProps) => {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
+          {user && (
+            <span className="text-sm text-muted-foreground mr-2">
+              {user.name || user.email}
+            </span>
+          )}
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={onOpenSettings}>
             <Settings className="h-5 w-5" />
             <span className="sr-only">Settings</span>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={logout} title="Logout">
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">Logout</span>
           </Button>
         </div>
       </div>

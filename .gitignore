@@ -7,9 +7,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build outputs
 dist
 dist-ssr
+dist-extension
 *.local
 
 # Editor directories and files
@@ -23,12 +27,16 @@ dist-ssr
 *.sln
 *.sw?
 
+# Tempo specific
 !node_modules/.vite
-
 **/tempobook/dynamic/
 **/tempobook/storyboards/
-
 core
-
 .github/
 
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

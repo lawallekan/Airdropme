@@ -5,6 +5,7 @@ import LinkEditDialog from "./LinkEditDialog";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Sparkles } from "lucide-react";
+import { useAuth } from "./auth/AuthProvider";
 
 import {
   getLinks,

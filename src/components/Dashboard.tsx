@@ -156,7 +156,7 @@ const Dashboard = ({
   }
 
   return (
-    <div className="flex flex-col w-full max-w-5xl mx-auto p-6 bg-card rounded-lg shadow-md border dark:border-gray-700 dark:shadow-gray-900/20">
+    <div className="flex flex-col mx-auto p-6 bg-card rounded-lg shadow-md border dark:border-gray-700 dark:shadow-gray-900/20 max-w-[1142px] h-[741.3px]">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="text-2xl font-bold">Your Links</h2>
@@ -170,9 +170,7 @@ const Dashboard = ({
           </Button>
         </div>
       </div>
-
       <StatsCard links={links} />
-
       <ActionBar
         selectedCount={selectedLinks.size}
         totalCount={filteredLinks.length}
@@ -184,7 +182,6 @@ const Dashboard = ({
         onExport={onExport}
         onImport={onImport}
       />
-
       <div className="my-4">
         <FilterBar
           onSearch={handleSearch}
@@ -193,7 +190,6 @@ const Dashboard = ({
           availableTags={availableTags}
         />
       </div>
-
       <div className="flex-1 my-4">
         <LinksList
           links={filteredLinks}
@@ -204,9 +200,7 @@ const Dashboard = ({
           onTagLink={handleTagLink}
         />
       </div>
-
       <ImportExport links={links} onImport={handleImportLinks} />
-
       {/* Tag Selection Dialog */}
       <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -254,7 +248,6 @@ const Dashboard = ({
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Add Link Dialog */}
       <AddLinkDialog
         open={addLinkDialogOpen}
